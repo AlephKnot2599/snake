@@ -65,52 +65,98 @@ def is_game_over():
     )
 
 
-# Game loop
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                paused = not paused
-            elif event.key == pygame.K_UP and direction != (0, SNAKE_SIZE):
-                direction = (0, -SNAKE_SIZE)
-            elif event.key == pygame.K_DOWN and direction != (0, -SNAKE_SIZE):
-                direction = (0, SNAKE_SIZE)
-            elif event.key == pygame.K_LEFT and direction != (SNAKE_SIZE, 0):
-                direction = (-SNAKE_SIZE, 0)
-            elif event.key == pygame.K_RIGHT and direction != (-SNAKE_SIZE, 0):
-                direction = (SNAKE_SIZE, 0)
+def restart_game():
+    global snake, food, direction
+    snake = [(WIDTH // 2, HEIGHT // 2)]
+    food = (
+        random.randint(0, WIDTH // SNAKE_SIZE - 1) * SNAKE_SIZE,
+        random.randint(0, HEIGHT // SNAKE_SIZE - 1) * SNAKE_SIZE,
+    )
+    direction = (0, -SNAKE_SIZE)
 
-    if paused:
-        continue
 
-    screen.fill((0, 0, 0))
-    
-    # Calculate the position of the title
-    title_width = title.get_width()
-    title_height = title.get_height()
-    title_x = (WIDTH - title_width) // 2
-    title_y = 10 # 10 pixels from the top
-
-    #Display the title
-    screen.blit(title, (title_x, title_y))
-
-    draw_snake()
-    draw_food()
-
-    update_snake()
-
-    if is_game_over():
-        break
-
-    score = len(snake) - 1
-
+def game_over_menu():
+    game_over_text = font.render("Game Over", True, (255, 255, 255))
     score_text = font.render(f"Score: {score}", True, (255, 255, 255))
-    screen.blit(score_text, (10, 10))
+    restart_text = font.render("Press R to play again", True, (255, 255, 255))
+    quit_text = font.render("Press Q to quit", True, (255, 255, 255))
 
-    pygame.display.flip()
-    clock.tick(FPS)
+    game_over_x = (WIDTH - game_over_text.get_width()) // 2
+    score_x = (WIDTH - score_text.get_width()) // 2
+    restart_x = (WIDTH - restart_text.get_width()) // 2
+    quit_x = (WIDTH - quit_text.get_width()) // 2
 
-print(f"Game over! Score: {score}")
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    restart_game()
+                    return
+                elif event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+        screen.fill((0, 0, 0))
+        screen.blit(game_over_text, (game_over_x, HEIGHT // 2 - 40))
+        screen.blit(score_text, (score_x, HEIGHT // 2))
+        screen.blit(restart_text, (restart_x, HEIGHT // 2 + 40))
+        screen.blit(quit_text, (quit_x, HEIGHT // 2 + 80))
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+# Outer game loop
+while True:
+    # Reset the game state
+    restart_game()
+
+    # Inner game loop
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    paused = not paused
+                elif event.key == pygame.K_UP and direction != (0, SNAKE_SIZE):
+                    direction = (0, -SNAKE_SIZE)
+                elif event.key == pygame.K_DOWN and direction != (0, -SNAKE_SIZE):
+                    direction = (0, SNAKE_SIZE)
+                elif event.key == pygame.K_LEFT and direction != (SNAKE_SIZE, 0):
+                    direction = (-SNAKE_SIZE, 0)
+                elif event.key == pygame.K_RIGHT and direction != (-SNAKE_SIZE, 0):
+                    direction = (SNAKE_SIZE, 0)
+
+        if paused:
+            continue
+
+        screen.fill((0, 0, 0))
+
+        # Calculate the position of the title
+        title_width = title.get_width()
+        title_height = title.get_height()
+        title_x = (WIDTH - title_width) // 2
+        title_y = 10  # 10 pixels from the top
+
+        # Display the title
+        screen.blit(title, (title_x, title_y))
+
+        draw_snake()
+        draw_food()
+
+        update_snake()
+
+        if is_game_over():
+            game_over_menu()
+            break
+
+        score = len(snake) - 1
+
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))
+
+        pygame.display.flip()
+        clock.tick(FPS)
